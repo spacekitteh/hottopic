@@ -3,8 +3,8 @@
 
 name:                hottopic
 version:             0.0.0.1
-synopsis:            A proof assistant based on Homotopy Type Theory
--- description:         
+synopsis:            A proof assistant and programming language based on Homotopy Type Theory
+description:         A proof assistant and programming language based on Homotopy Type Theory
 homepage:            https://www.github.com/spacekitteh/hottopic
 license:             MIT
 license-file:        LICENSE
@@ -15,6 +15,10 @@ category:            Math
 build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
+
+source-repository head
+  type: git
+  location: git://github.com/spacekitteh/hottopic.git
 
 executable hottopic
   main-is:             Main.lhs
