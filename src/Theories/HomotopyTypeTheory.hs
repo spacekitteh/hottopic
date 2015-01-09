@@ -32,6 +32,8 @@ instance Pretty identifier => Pretty (Elimination identifier) where
     pretty (LambdaApplication f x) = parens (pretty f) <> parens (pretty x)
 instance Pretty identifier => Pretty (Introduction identifier) where
     pretty (Universe level) = text "𝓤_" <> pretty level
+    pretty (LambdaAbstraction x b) = char 'λ' <> pretty x <> char '.' <> pretty b
+    
 
 instance Pretty identifier => Show (Formation identifier) where
     show = show . pretty
