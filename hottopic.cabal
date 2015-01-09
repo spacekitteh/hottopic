@@ -20,10 +20,10 @@ source-repository head
   type: git
   location: git://github.com/spacekitteh/hottopic.git
 
-executable hottopic
-  main-is:             Main.lhs
-  -- other-modules:       
-  -- other-extensions:    
-  build-depends:       base >=4.7 && <4.8
+library
+--  main-is:             Main.lhs
+  exposed-modules:       TypeTheory, Theories.HomotopyTypeTheory
+  -- other-exten:rsions:    
+  build-depends:       bound >= 1.0, text >= 1.2, wl-pprint-extras, wl-pprint-terminfo, base >= 4.8 && < 4.9
   hs-source-dirs:      src
   default-language:    Haskell2010
