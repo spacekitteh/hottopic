@@ -5,7 +5,9 @@ module Theories.HomotopyTypeTheory where
 import Numeric.Natural
 import Text.PrettyPrint.Free
 import System.Console.Terminfo.PrettyPrint
-
+import Bound
+import Bound.Term
+import Bound.Name
 import qualified TypeTheory as TT
 
 type Expr  identifier = TT.Term Formation Introduction Elimination identifier
@@ -14,8 +16,9 @@ data DefinedConstant identifier = Fgsfds deriving (Show, Eq, Ord, Functor, Trave
 data Formation identifier =  PiType  (Expr identifier) (Expr identifier) -- x B -> \~\_(x:A) B
                            | SigmaType (Expr identifier) (Expr identifier) -- a B -> \Sigma_(x:A) B 
                             deriving (Eq, Ord,  Functor, Foldable, Traversable)
+
 data Introduction identifier = Universe Natural 
-                               | LambdaAbstraction (Expr identifier) (Expr identifier)  -- x b -> \(x:A) . b : |~|_(x:A) B
+                               | LambdaAbstraction (Scope (Name identifier ())  (TT.Term Formation Introduction Elimination) identifier)  -- x b -> \(x:A) . b : |~|_(x:A) B
                                | DependantPair (Expr identifier) (Expr identifier)-- (a, b:B)
                                  deriving (Eq, Functor, Ord, Foldable, Traversable)
 data Elimination identifier = LambdaApplication (Expr identifier) (Expr identifier) -- (f:|~|_(x:A) B) a -> B[a/x]
@@ -24,6 +27,10 @@ data Computation identifier = ComputePiType (Expr identifier) (Expr identifier) 
                                       deriving (Eq, Functor, Ord, Foldable, Traversable)
 data UniquenessRule identifier = PiUniqueness 
                                      deriving (Eq, Functor,  Ord, Foldable, Traversable)
+
+
+lambda x exp = TT.Constructor $ LambdaAbstraction 
+
 
 instance Pretty identifier => Pretty (Formation identifier) where
     pretty (PiType x b) = char '∏' <> (pretty x) <> char '→' <> (pretty b)
@@ -41,3 +48,6 @@ instance Pretty identifier => Show (Introduction identifier) where
     show = show . pretty
 instance Pretty identifier => Show (Elimination identifier) where
     show = show . pretty
+
+
+--compute (LambdaApplication (TT.Constructor (LambdaAbstraction (TT.Variable (Name _ x)) b)) a) = substitute x a b
