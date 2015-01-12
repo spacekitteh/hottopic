@@ -12,6 +12,7 @@ import Control.Monad
 import Data.Coerce
 import Bound.Class
 import Prelude.Extras 
+import Data.String
 data Program a= Program [TDecl a] [VDecl a]
 
 data TDecl a= TDecl (TCons a) [DCons a]
@@ -22,6 +23,18 @@ data VDecl a = VDecl (TVar a) (Expr a)
 data Binds = Binding | NonBinding
 
 newtype Universe = Universe Natural deriving (Eq, Ord, Show, Read)
+
+
+--var n ty = VarExpr (TVar(Var (Name (fromString n) ())) ty) 
+
+lam :: Eq a => a -> Expr a -> Expr a
+lam v b = LamExpr (abstract1 v b)
+
+
+
+infixr 9 =:=
+(=:=) :: Expr a -> Expr a -> Expr a
+a =:=  b = PrimitiveExpr (Refl a b)
 
 data Expr a =
     VarExpr a 
@@ -52,14 +65,14 @@ instance Monad Expr where
     LetExpr bs e >>= f = LetExpr (map (>>>= f) bs) (e >>>= f)
     PrimitiveExpr (IdentityType e1 e2 e3) >>= f = PrimitiveExpr (IdentityType (e1 >>= f) (e2 >>= f) (e3 >>= f))
     PrimitiveExpr (Refl e1 e2) >>= f = PrimitiveExpr (Refl (e1 >>= f) (e2 >>= f))
-    PrimitiveExpr (SuccNat e) >>= f = PrimitiveExpr (SuccNat (e >>= f))
-    PrimitiveExpr ZeroType >>= _ = PrimitiveExpr ZeroType
-    PrimitiveExpr OneType >>= _ = PrimitiveExpr OneType
-    PrimitiveExpr OneObject >>= _ = PrimitiveExpr OneObject
+--    PrimitiveExpr (SuccNat e) >>= f = PrimitiveExpr (SuccNat (e >>= f))
+--    PrimitiveExpr ZeroType >>= _ = PrimitiveExpr ZeroType
+--    PrimitiveExpr OneType >>= _ = PrimitiveExpr OneType
+--    PrimitiveExpr OneObject >>= _ = PrimitiveExpr OneObject
     PrimitiveExpr CharacterType >>= _ = PrimitiveExpr CharacterType
     PrimitiveExpr (Character c) >>= _ = PrimitiveExpr (Character c)
-    PrimitiveExpr (NatType) >>= _ = PrimitiveExpr NatType
-    PrimitiveExpr ZeroNat >>= _ = PrimitiveExpr ZeroNat
+--    PrimitiveExpr (NatType) >>= _ = PrimitiveExpr NatType
+--    PrimitiveExpr ZeroNat >>= _ = PrimitiveExpr ZeroNat
     PrimitiveExpr FloatingPointType >>= _ = PrimitiveExpr FloatingPointType
     PrimitiveExpr (FloatingPoint d) >>= _ = PrimitiveExpr (FloatingPoint d)
     HoleExpr >>= f = HoleExpr
@@ -75,16 +88,17 @@ type DCA a = TVar a
 
 data Lit a = IdentityType (Expr a) (Expr a) (Expr a) -- a A b
          | Refl (Expr a) (Expr a)
-         | ZeroType
-         | OneType
-         | OneObject
          | CharacterType
          | Character Char
-         | NatType
-         | ZeroNat
-         | SuccNat (Expr a)
          | FloatingPointType
          | FloatingPoint Double deriving (Eq, Ord, Read, Show, Functor, Foldable, Traversable)
+{-       | ZeroType
+         | OneType
+         | OneObject
+         | NatType
+         | ZeroNat
+         | SuccNat (Expr a)-}
+
 
 data TVar a = TVar (Var a) (Expr a) deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Read)
 newtype Var a = Var (Name Text a) deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Read)
@@ -92,6 +106,12 @@ newtype Var a = Var (Name Text a) deriving (Eq, Ord, Show, Functor, Foldable, Tr
 
 data DeltaRule a = DeltaRule (TVar a) (Expr a) deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Read)
 type DeltaRules a= [DeltaRule a]
+
+data Redex a = NoRedex
+           | BetaRedex
+           | IotaRedex
+           | DeltaRedex (DeltaRule a)
+           | ZetaRedex
 
 prog2DeltaRules :: Program a -> DeltaRules a
 prog2DeltaRules (Program _ vdecls) = map vDecl2DeltaRule vdecls
