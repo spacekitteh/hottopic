@@ -24,6 +24,6 @@ library
 --  main-is:             Main.lhs
   exposed-modules:       TypeTheory, Theories.HomotopyTypeTheory
   -- other-exten:rsions:    
-  build-depends:       bound >= 1.0, text >= 1.2, wl-pprint-extras, wl-pprint-terminfo, base >= 4.8 && < 4.9, llvm-general-pure >= 3.4.4.1,  unification-fd
+  build-depends:       bound >= 1.0, text >= 1.2, wl-pprint-extras, wl-pprint-terminfo, base >= 4.8 && < 4.9, llvm-general-pure >= 3.4.4.1,  unification-fd, prelude-extras
   hs-source-dirs:      src
   default-language:    Haskell2010

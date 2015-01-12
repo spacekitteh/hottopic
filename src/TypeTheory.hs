@@ -4,14 +4,107 @@ module TypeTheory where
 import Bound.Scope
 import Numeric.Natural 
 import Bound.Name
-import Data.Text.Lazy
+import Data.Text.Lazy hiding (map)
 import Text.PrettyPrint.Free
 import System.Console.Terminfo.PrettyPrint
 import Control.Applicative
 import Control.Monad
-data Sequent f i e a = Sequent (Context f i e a) (Term f i e a) 
-data Rule f i e a = Rule String [Sequent f i e a] (Sequent f i e a)
+import Data.Coerce
+import Bound.Class
+import Prelude.Extras 
+data Program a= Program [TDecl a] [VDecl a]
 
+data TDecl a= TDecl (TCons a) [DCons a]
+type TCons a = TVar a
+type DCons a = TVar a
+data VDecl a = VDecl (TVar a) (Expr a)
+
+data Binds = Binding | NonBinding
+
+newtype Universe = Universe Natural deriving (Eq, Ord, Show, Read)
+
+data Expr a =
+    VarExpr a 
+    | LamExpr (Scope () Expr a)--a (Expr a)
+    | PiExpr (Scope () Expr a) --a (Expr a)
+    | PairExpr  (Expr a) (Scope Int Expr a) -- (Expr a) a BUGBUGBUG does this need to be a double layer scope to take into account the proper binding?
+    | SigmaExpr (Scope () Expr a) --a (Expr a)
+    | AppExpr  (Expr a) (Expr a)
+    | CaseExpr  (Expr a) [Alt a]
+    | UniverseExpr Universe
+    | LetExpr [Scope Int Expr a] (Scope Int Expr a) --a (Expr a) (Expr a)
+    | PrimitiveExpr (Lit a)
+    | HoleExpr deriving (Eq, Ord, Read, Show, Functor, Foldable, Traversable)
+
+instance Applicative Expr where
+    pure = VarExpr
+    (<*>) = ap
+
+instance Monad Expr where
+    return = VarExpr
+    VarExpr a >>= f = f a
+    LamExpr e >>= f = LamExpr (e >>>= f)
+    PiExpr e >>= f = PiExpr (e >>>= f)
+    PairExpr a b >>= f = PairExpr (a >>= f) (b >>>= f)
+    SigmaExpr e >>= f = SigmaExpr (e >>>= f)
+    AppExpr x y >>= f = AppExpr (x >>= f) (y >>= f)
+    UniverseExpr a >>= f = UniverseExpr a
+    LetExpr bs e >>= f = LetExpr (map (>>>= f) bs) (e >>>= f)
+    PrimitiveExpr (IdentityType e1 e2 e3) >>= f = PrimitiveExpr (IdentityType (e1 >>= f) (e2 >>= f) (e3 >>= f))
+    PrimitiveExpr (Refl e1 e2) >>= f = PrimitiveExpr (Refl (e1 >>= f) (e2 >>= f))
+    PrimitiveExpr (SuccNat e) >>= f = PrimitiveExpr (SuccNat (e >>= f))
+    PrimitiveExpr ZeroType >>= _ = PrimitiveExpr ZeroType
+    PrimitiveExpr OneType >>= _ = PrimitiveExpr OneType
+    PrimitiveExpr OneObject >>= _ = PrimitiveExpr OneObject
+    PrimitiveExpr CharacterType >>= _ = PrimitiveExpr CharacterType
+    PrimitiveExpr (Character c) >>= _ = PrimitiveExpr (Character c)
+    PrimitiveExpr (NatType) >>= _ = PrimitiveExpr NatType
+    PrimitiveExpr ZeroNat >>= _ = PrimitiveExpr ZeroNat
+    PrimitiveExpr FloatingPointType >>= _ = PrimitiveExpr FloatingPointType
+    PrimitiveExpr (FloatingPoint d) >>= _ = PrimitiveExpr (FloatingPoint d)
+    HoleExpr >>= f = HoleExpr
+
+instance Eq1 Expr      where (==#)      = (==)
+instance Ord1 Expr     where compare1   = compare
+instance Show1 Expr    where showsPrec1 = showsPrec
+instance Read1 Expr    where readsPrec1 = readsPrec
+
+data Alt a = Alt (TCons a) [TCA a] [DCA a] (Expr a) deriving (Eq, Ord, Show, Read, Functor, Foldable, Traversable)
+type TCA a = TVar a
+type DCA a = TVar a
+
+data Lit a = IdentityType (Expr a) (Expr a) (Expr a) -- a A b
+         | Refl (Expr a) (Expr a)
+         | ZeroType
+         | OneType
+         | OneObject
+         | CharacterType
+         | Character Char
+         | NatType
+         | ZeroNat
+         | SuccNat (Expr a)
+         | FloatingPointType
+         | FloatingPoint Double deriving (Eq, Ord, Read, Show, Functor, Foldable, Traversable)
+
+data TVar a = TVar (Var a) (Expr a) deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Read)
+newtype Var a = Var (Name Text a) deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Read)
+
+
+data DeltaRule a = DeltaRule (TVar a) (Expr a) deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Read)
+type DeltaRules a= [DeltaRule a]
+
+prog2DeltaRules :: Program a -> DeltaRules a
+prog2DeltaRules (Program _ vdecls) = map vDecl2DeltaRule vdecls
+
+vDecl2DeltaRule :: VDecl a -> DeltaRule a
+vDecl2DeltaRule (VDecl tv ex) = DeltaRule tv ex
+
+
+
+
+
+{-data Sequent f i e a = Sequent (Context f i e a) (Term f i e a) 
+data Rule f i e a = Rule String [Sequent f i e a] (Sequent f i e a)
 newtype Context f i e a = Context[(Var a, Term f i e a)] deriving (Show, Eq, Ord, Foldable, Traversable, Functor)
 
 
@@ -53,7 +146,7 @@ instance (Pretty (f a), Pretty (i a), Pretty (e a), Pretty a) => Pretty (Term f 
 instance (Pretty (f a), Pretty (i a), Pretty (e a), Pretty a) => Show (Term f i e a) where
     show = show . pretty
 
---
+-}
 
 
 

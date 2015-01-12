@@ -1,7 +1,7 @@
 {-#LANGUAGE GeneralizedNewtypeDeriving, GADTs, DataKinds, StandaloneDeriving, DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 
 module Theories.HomotopyTypeTheory where
-
+{-
 import Numeric.Natural
 import Text.PrettyPrint.Free
 import System.Console.Terminfo.PrettyPrint
@@ -49,5 +49,5 @@ instance Pretty identifier => Show (Introduction identifier) where
 instance Pretty identifier => Show (Elimination identifier) where
     show = show . pretty
 
-
+-}
 --compute (LambdaApplication (TT.Constructor (LambdaAbstraction (TT.Variable (Name _ x)) b)) a) = substitute x a b
