@@ -32,15 +32,15 @@ lam v b = LamExpr (abstract1 v b)
 
 
 
-infixr 9 =:=
-(=:=) :: Expr a -> Expr a -> Expr a
-a =:=  b = PrimitiveExpr (Refl a b)
+--infixr 9 =:=
+--(=:=) :: (Eq a) => Expr a -> Expr a -> Expr a
+--a =:=  b = if (a == b) then PrimitiveExpr (Refl a b) else HoleExpr
 
 data Expr a =
     VarExpr a 
     | LamExpr (Scope () Expr a)--a (Expr a)
-    | PiExpr (Scope () Expr a) --a (Expr a)
-    | PairExpr  (Expr a) (Scope Int Expr a) -- (Expr a) a BUGBUGBUG does this need to be a double layer scope to take into account the proper binding?
+    | PiExpr  (Scope () Expr a) --a (Expr a)
+    | PairExpr  (Expr a) (Expr a) -- (Expr a) a BUGBUGBUG does this need to be a double layer scope to take into account the proper binding?
     | SigmaExpr (Scope () Expr a) --a (Expr a)
     | AppExpr  (Expr a) (Expr a)
     | CaseExpr  (Expr a) [Alt a]
@@ -58,21 +58,15 @@ instance Monad Expr where
     VarExpr a >>= f = f a
     LamExpr e >>= f = LamExpr (e >>>= f)
     PiExpr e >>= f = PiExpr (e >>>= f)
-    PairExpr a b >>= f = PairExpr (a >>= f) (b >>>= f)
+    PairExpr a b >>= f = PairExpr (a >>= f) (b >>= f)
     SigmaExpr e >>= f = SigmaExpr (e >>>= f)
     AppExpr x y >>= f = AppExpr (x >>= f) (y >>= f)
     UniverseExpr a >>= f = UniverseExpr a
     LetExpr bs e >>= f = LetExpr (map (>>>= f) bs) (e >>>= f)
     PrimitiveExpr (IdentityType e1 e2 e3) >>= f = PrimitiveExpr (IdentityType (e1 >>= f) (e2 >>= f) (e3 >>= f))
     PrimitiveExpr (Refl e1 e2) >>= f = PrimitiveExpr (Refl (e1 >>= f) (e2 >>= f))
---    PrimitiveExpr (SuccNat e) >>= f = PrimitiveExpr (SuccNat (e >>= f))
---    PrimitiveExpr ZeroType >>= _ = PrimitiveExpr ZeroType
---    PrimitiveExpr OneType >>= _ = PrimitiveExpr OneType
---    PrimitiveExpr OneObject >>= _ = PrimitiveExpr OneObject
     PrimitiveExpr CharacterType >>= _ = PrimitiveExpr CharacterType
     PrimitiveExpr (Character c) >>= _ = PrimitiveExpr (Character c)
---    PrimitiveExpr (NatType) >>= _ = PrimitiveExpr NatType
---    PrimitiveExpr ZeroNat >>= _ = PrimitiveExpr ZeroNat
     PrimitiveExpr FloatingPointType >>= _ = PrimitiveExpr FloatingPointType
     PrimitiveExpr (FloatingPoint d) >>= _ = PrimitiveExpr (FloatingPoint d)
     HoleExpr >>= f = HoleExpr
@@ -119,6 +113,8 @@ prog2DeltaRules (Program _ vdecls) = map vDecl2DeltaRule vdecls
 vDecl2DeltaRule :: VDecl a -> DeltaRule a
 vDecl2DeltaRule (VDecl tv ex) = DeltaRule tv ex
 
+nf :: Expr a -> Expr a
+nf HoleExpr = HoleExpr
 
 
 
