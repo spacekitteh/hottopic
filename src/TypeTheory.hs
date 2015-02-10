@@ -1,4 +1,4 @@
-{-#LANGUAGE GeneralizedNewtypeDeriving, GADTs, DataKinds, StandaloneDeriving, DeriveFunctor, DeriveFoldable, DeriveTraversable, FlexibleContexts, TypeSynonymInstances, OverloadedStrings, FlexibleInstances #-}
+{-#LANGUAGE GeneralizedNewtypeDeriving, GADTs, DataKinds, StandaloneDeriving, DeriveFunctor, DeriveFoldable, DeriveTraversable, FlexibleContexts, TypeSynonymInstances, OverloadedStrings, FlexibleInstances, LambdaCase, PatternSynonyms #-}
 module TypeTheory where
 
 import Bound.Scope
@@ -30,24 +30,24 @@ newtype Universe = Universe Natural deriving (Eq, Ord, Show, Read)
 lam :: Eq a => a -> Expr a -> Expr a
 lam v b = LamExpr (abstract1 v b)
 
+type Name
 
 
---infixr 9 =:=
---(=:=) :: (Eq a) => Expr a -> Expr a -> Expr a
---a =:=  b = if (a == b) then PrimitiveExpr (Refl a b) else HoleExpr
 
-data Expr a =
-    VarExpr a 
-    | LamExpr (Scope () Expr a)--a (Expr a)
-    | PiExpr  (Scope () Expr a) --a (Expr a)
-    | PairExpr  (Expr a) (Expr a) -- (Expr a) a BUGBUGBUG does this need to be a double layer scope to take into account the proper binding?
-    | SigmaExpr (Scope () Expr a) --a (Expr a)
+data HoTT a =
+    
+    | LamExpr (Expr a) (Scope () Expr a)--a (Expr a)
+    | PiExpr  (Expr a) (Scope () Expr a) --a (Expr a)
+    | PairExpr  (Expr a) (Expr a) (Expr a) 
+    | SigmaExpr (Expr a) (Scope () Expr a) --a (Expr a)
     | AppExpr  (Expr a) (Expr a)
     | CaseExpr  (Expr a) [Alt a]
     | UniverseExpr Universe
     | LetExpr [Scope Int Expr a] (Scope Int Expr a) --a (Expr a) (Expr a)
     | PrimitiveExpr (Lit a)
     | HoleExpr deriving (Eq, Ord, Read, Show, Functor, Foldable, Traversable)
+
+
 
 instance Applicative Expr where
     pure = VarExpr

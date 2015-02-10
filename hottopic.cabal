@@ -21,9 +21,8 @@ source-repository head
   location: git://github.com/spacekitteh/hottopic.git
 
 library
---  main-is:             Main.lhs
   exposed-modules:       TypeTheory, Theories.HomotopyTypeTheory
   -- other-exten:rsions:    
-  build-depends:       bound >= 1.0, text >= 1.2, wl-pprint-extras, wl-pprint-terminfo, base >= 4.8 && < 4.9,  unification-fd, prelude-extras, parsec, kure
+  build-depends:       unbound, text >= 1.2, wl-pprint-extras, wl-pprint-terminfo, base >= 4.8 && < 4.9,  unification-fd, prelude-extras, trifecta, kure, haskell-rules
   hs-source-dirs:      src
   default-language:    Haskell2010

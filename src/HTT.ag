@@ -1,0 +1,44 @@
+pragma datarecords
+pragma gencostcentres
+pragma gentraces
+pragma genlinepragmas
+
+optpragmas
+{
+{-# LANGUAGE MultiParamTypeClasses
+            , TemplateHaskell
+            , ScopedTypeVariables
+            , FlexibleInstances
+            , FlexibleContexts
+            , UndecidableInstances #-}
+}
+module {HomotopyTypeTheory}
+{}
+{
+import Unbound.LocallyNameless
+}
+
+type TName = (Name HTT)
+
+data Telescope
+    | Empty
+    | Zoom  var :: {Rebind (TName, Embed Term)}
+            rest :: Telescope
+
+type ZoomedTerm = (Bind Telescope Term)
+
+data Term
+    | Hole
+    | Universe level :: Natural
+    | Equality ty :: Term
+               a :: Term
+               b :: Term
+    | Refl ty :: Term
+           x :: Term
+    | Var var :: TName
+    | Pi binder :: ZoomedTerm
+    | Lambda binder :: ZoomedTerm
+    | App func :: Term
+          args :: {[Term]}
+--    | Sigma binder :: ZoomedTerm
+--    | Tuple
